@@ -1,29 +1,27 @@
-# This Python file uses the following encoding: utf-8
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from krita import *
-
 import json
 from os import path
 
+from krita import Krita
+from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtCore import Qt
+
 from toolkitdocker.json_class import json_class
-from toolkitdocker.toolbuttons import ToolList
 from toolkitdocker.tool_categories import CategoryDict
+from toolkitdocker.toolbuttons import ToolList
 
 category_dictionary = CategoryDict()
 
-class CategorySelect(QWidget):
+class CategorySelect(QtWidgets.QWidget):
 
     def __init__(self):
         super().__init__()
 
-        self.subtool_column = QVBoxLayout()
-        self.columns = QHBoxLayout()
-        self.config_layout = QVBoxLayout()
-        self.header_row = QHBoxLayout()
+        self.subtool_column = QtWidgets.QVBoxLayout()
+        self.columns = QtWidgets.QHBoxLayout()
+        self.config_layout = QtWidgets.QVBoxLayout()
+        self.header_row = QtWidgets.QHBoxLayout()
 
-        self.preset_dropbox = QComboBox()
+        self.preset_dropbox = QtWidgets.QComboBox()
         self.preset_dropbox.insertItem(0, "Painting")
         self.preset_dropbox.setEditable(True)
 
@@ -43,7 +41,7 @@ class CategorySelect(QWidget):
 
         for ToolButton in ToolList:
             tool_panel = ToolPanel()
-            tool_panel.setIcon(Application.icon(ToolButton.icon))
+            tool_panel.setIcon(Krita.instance().icon(ToolButton.icon().name()))
             tool_panel.setObjectName(ToolButton.actionName)
             if ToolButton.isMain == "1":
                 self.containers[ToolButton.category].layout().addWidget(tool_panel)
@@ -57,48 +55,53 @@ class CategorySelect(QWidget):
         self.setLayout(self.config_layout)
 
 
-class Container(QFrame):
+class Container(QtWidgets.QFrame):
 
     def __init__(self, name):
         super().__init__()
         self.name = name
-        self.setFrameShape(QFrame.StyledPanel)
-        self.setFrameShadow(QFrame.Sunken)
+        self.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
+        self.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
 
-        self.setLayout(QHBoxLayout())
-        self.layout().setAlignment(Qt.AlignLeft)
+        self.setLayout(QtWidgets.QHBoxLayout())if isinstance(source, QtWidgets.QWidget):
+        self.layout().setAlignment(Qt.AlignmentFlag.AlignLeft) # TOFIX 
 
         self.setAcceptDrops(True)
 
-    def dragEnterEvent(self, event):
+    def dragEnterEvent(self, event: QtGui.QDragEnterEvent|None): # pyright: ignore[reportIncompatibleMethodOverride]
+        if event is None: return
         event.accept()
 
-    def dropEvent(self, event):
-        position = event.pos()
-        self.layout().addWidget(QDropEvent.source(event))
+    def dropEvent(self, event: QtGui.QDropEvent|None): # pyright: ignore[reportIncompatibleMethodOverride]
+        if event is None: return
+        
+        source = event.source()
+        if isinstance(source, QtWidgets.QWidget):
+            self.layout().addWidget(source) # TOFIX
 
-        event.setDropAction(Qt.MoveAction)
+        event.setDropAction(Qt.DropAction.MoveAction)
         event.accept() # insertWidget
 
-class QVSeparationLine(QFrame):
+class QVSeparationLine(QtWidgets.QFrame):
 
   def __init__(self):
     super().__init__()
     self.setFixedWidth(20)
     self.setMinimumHeight(1)
-    self.setFrameShape(QFrame.VLine)
-    self.setFrameShadow(QFrame.Sunken)
-    self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
-    return
+    self.setFrameShape(QtWidgets.QFrame.Shape.VLine)
+    self.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+    self.setSizePolicy(QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Preferred)
 
-class ToolPanel(QToolButton):
+class ToolPanel(QtWidgets.QToolButton):
     def __init__(self):
         super().__init__()
 
-    def mouseMoveEvent(self, event):
-        mimeData = QMimeData()
-        drag = QDrag(self)
+    def mouseMoveEvent(self, event: QtGui.QMouseEvent|None): # pyright: ignore[reportIncompatibleMethodOverride]
+        if event is None: return
+        
+        mimeData = QtCore.QMimeData()
+        drag = QtGui.QDrag(self)
         drag.setMimeData(mimeData)
         drag.setHotSpot(event.pos() - self.rect().topLeft())
 
-        dropAction = drag.exec_(Qt.MoveAction)
+        drag.exec(Qt.DropAction.MoveAction)

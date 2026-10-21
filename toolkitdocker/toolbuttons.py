@@ -1,9 +1,10 @@
-from PyQt5.QtWidgets import QToolButton
-from PyQt5.QtGui import QPalette, QColor
-from PyQt5.QtCore import QSize
-
 from krita import *
+from PyQt6.QtCore import QSize
+from PyQt6.QtGui import QColor, QPalette
+from PyQt6.QtWidgets import QToolButton
+
 from toolkitdocker.json_class import json_class
+
 
 class ToolButton(QToolButton):
     """
@@ -23,7 +24,7 @@ class ToolButton(QToolButton):
         self.isMain = isMain
 
         palette = QPalette()
-        palette.setColor(QPalette.Button, QColor(74, 108, 134))
+        palette.setColor(QPalette.ColorRole.Button, QColor(74, 108, 134))
         self.setPalette(palette)
 
         self.updateIconSize()
@@ -33,9 +34,9 @@ class ToolButton(QToolButton):
         self.setAutoRaise(True)
 
         # Link ToolButton attributes
-        self.setIcon(Application.icon(self.icon))
+        self.setIcon(Krita.instance().icon(self.icon))
         self.setObjectName(self.actionName)
-        self.setToolTip(i18n(self.toolName))
+        self.setToolTip(Krita.krita_i18n(self.toolName))
 
     def updateIconSize(self):
         jsonMethod = json_class()
@@ -49,7 +50,7 @@ class ToolButton(QToolButton):
     def enterEvent(self, event):
         super().enterEvent(event)
 
-        if len(Application.documents()) == 0: # disable buttons before document is visible
+        if len(Krita.instance().documents()) == 0: # disable buttons before document is visible
             self.setEnabled(False)
         else:
             self.setEnabled(True)

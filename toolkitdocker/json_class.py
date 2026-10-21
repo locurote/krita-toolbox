@@ -1,7 +1,6 @@
-# This Python file uses the following encoding: utf-8
-
 import json
 from os import path
+
 
 class json_class:
 

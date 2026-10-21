@@ -1,0 +1,8 @@
+{
+    "python.analysis.languageServerMode": "full",
+    "python.analysis.typeCheckingMode": "standard",
+    "python.analysis.extraPaths": [
+        "/usr/lib/krita-python-libs/*",
+        "./*"
+    ],
+}

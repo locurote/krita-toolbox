@@ -1,16 +1,16 @@
-# This Python file uses the following encoding: utf-8
+from typing import override
 
-from PyQt5.QtWidgets import QLayout, QSizePolicy
-from PyQt5.QtCore import Qt, QRect, QPoint, QSize
+from PyQt6.QtCore import QPoint, QRect, QSize, Qt
+from PyQt6.QtWidgets import QLayout, QLayoutItem, QSizePolicy
+
 
 class FlowLayout(QLayout):
-
     def __init__(self, parent = None, margin = 0, spacing = 10):
         super().__init__(parent)
         self.margin = margin
 
         if parent is not None:
-            self.setMargin(margin)
+            self.setMargin(margin) # TOFIX
 
         self.setSpacing(spacing)
 
@@ -21,7 +21,8 @@ class FlowLayout(QLayout):
         while item:
             item = self.takeAt(0)
 
-    def addItem(self, item):
+    @override
+    def addItem(self, item: QLayoutItem | None) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
         self.itemList.append(item)
 
     def count(self):
@@ -39,18 +40,22 @@ class FlowLayout(QLayout):
 
         return None
 
+    @override
     def expandingDirections(self):
-        return Qt.Orientations(Qt.Orientation(0))
+        return Qt.Orientation.Vertical
 
+    @override
     def hasHeightForWidth(self):
         return True
 
-    def heightForWidth(self, width):
-        height = self.doLayout(QRect(0, 0, width, 0), True)
+    @override
+    def heightForWidth(self, w: int):  # pyright: ignore[reportIncompatibleMethodOverride]
+        height = self.doLayout(QRect(0, 0, w, 0), True)
         return height
 
-    def setGeometry(self, rect):
-        super(FlowLayout, self).setGeometry(rect)
+    @override
+    def setGeometry(self, rect: QRect) -> None:  # pyright: ignore[reportIncompatibleMethodOverride]
+        super().setGeometry(rect)
 
         self.doLayout(rect, False)
 
@@ -74,14 +79,16 @@ class FlowLayout(QLayout):
         for item in self.itemList:
             wid = item.widget()
             spaceX = self.spacing() + wid.style().layoutSpacing(
-                QSizePolicy.PushButton,
-                QSizePolicy.PushButton,
-                Qt.Horizontal)
+                QSizePolicy.ControlType.PushButton,
+                QSizePolicy.ControlType.PushButton,
+                Qt.Orientation.Horizontal,
+            )
 
             spaceY = self.spacing() + wid.style().layoutSpacing(
-                QSizePolicy.PushButton,
-                QSizePolicy.PushButton,
-                Qt.Vertical)
+                QSizePolicy.ControlType.PushButton,
+                QSizePolicy.ControlType.PushButton,
+                Qt.Orientation.Vertical,
+            )
 
             nextX = x + item.sizeHint().width() + spaceX
             if nextX - spaceX > rect.right() and lineHeight > 0:
@@ -91,8 +98,7 @@ class FlowLayout(QLayout):
                 lineHeight = 0
 
             if not testOnly:
-                item.setGeometry(
-                    QRect(QPoint(x, y), item.sizeHint()))
+                item.setGeometry(QRect(QPoint(x, y), item.sizeHint()))
 
             x = nextX
             lineHeight = max(lineHeight, item.sizeHint().height())
